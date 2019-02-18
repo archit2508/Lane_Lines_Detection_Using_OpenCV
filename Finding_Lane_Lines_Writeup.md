@@ -8,7 +8,7 @@
 ## PIPELINE
 
 ### 1. Loaded the test images
-```
+```python
 import glob
 images = glob.glob("test_images/*")
 
@@ -20,7 +20,7 @@ for test_image in images:
 
 ### 2. Converted the image to grayscale
 This was done to get monotonic coloured image so that strong change in intensity gradient can be detected easily to find edges later
-```
+```python
 def grayscale(img):
     return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     
@@ -29,7 +29,7 @@ gray_image = grayscale(image)
 
 ### 3. Applied gaussian blur to get smooth edges later
 This was done to smooth out the noise in the image to facilitate smooth edge detection
-```
+```python
 def gaussian_blur(img, kernel_size):
     return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
 
@@ -38,7 +38,7 @@ blurred_image = gaussian_blur(gray_image, 5)
 
 ### 4. Applied canny to get edges in the image
 This algo involves low and high thresholds of pixels which are used to detect edges in such a way that if an edge's pixel gradient value is higher than threshold, it is marked as strong edge, discarded if it is below threshold and weak edge if value lies between the 2 thresholds.
-```
+```python
 def canny(img, low_threshold, high_threshold):
     return cv2.Canny(img, low_threshold, high_threshold)
     
@@ -48,7 +48,7 @@ edges = canny(blurred_image, 50, 150)
 ### 5. Applied mask to get region of interest
 I defined a set of vertices here to construct a polygon over the image to exlude all the pixels outside of polygon from being considered for lane detection.
 This allows me to narrow down my search area for efficient results.
-```
+```python
 def region_of_interest(img, vertices):
     mask = np.zeros_like(img)                     #defining a blank mask to start with
     
@@ -70,7 +70,7 @@ my_region = region_of_interest(edges, vertices)
 
 ### 6. Applied Hough transform
 On the region of interest, I applied hough transform which on the basis of some parameters provides coordinates of potential line segments which can be constructed to later get the lane lines in the image after extrapolation
-```
+```python
 def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
     line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
@@ -94,7 +94,7 @@ line_image = hough_lines(my_region, rho, theta, threshold, min_line_length, max_
 6. We already have y ccordinates for both lines as the top and bottom value of ROI.
 7. Now we can use the slope and intercept deduced in previous steps to get x coordinates using polynomial expression.
 8. Finally, we can use draw_line function to plot single left lane line and right lane line using the coordinates calculated in last step.
-```
+```python
 def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
     x_left = []
     y_left = []
@@ -139,7 +139,7 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
 
 ### 8. Drawing the lines over original image
 Finally I merged the lines drawn with original image using weighted_img function
-```
+```python
 def weighted_img(img, initial_img, α=0.8, β=1., γ=0.):
     return cv2.addWeighted(initial_img, α, img, β, γ)
     
@@ -148,7 +148,7 @@ final_image = weighted_img(line_image, image, α=0.8, β=1., γ=0.)
 
 
 ## Applying the above pipeline on videos 
-```
+```python
 from moviepy.editor import VideoFileClip
 from IPython.display import HTML
 
